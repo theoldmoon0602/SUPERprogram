@@ -1,212 +1,215 @@
-#include <stdbool.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <stdio.h>
 
 #include "sc1.h"
 
-/* -- CONSTANTS -- */
 #define UNKNOWN 15
 
-/* -- Function Declaration -- */
-int comb(int sorted[], int len);
-void sort(int data1[], int data2[], int len); 
-int solve(int unk, int n, int x);
-int check(int t);
+int solve(int unknown_count,int col,int row);
+int check(int col);
+void sort(int data[],int data2[]);
 void rotate();
+int comb(int sorted[]);
 int isMahoJin();
 
-/* -- Variable Declaration -- */
-int *nokori; /* non used numbers */
-int *sorted;
-int *index_;
-int *used;   /* used numbers in mahojin */
-
-
-int main()
-{
-	/* -- variables counter in both column and row  */
-	int line[N] = {};
-	int raw[N] = {};
-	/* -- Coutner Variables */
-	int i, j;
-	int count = 0; /* index of unused nums */
-	used = malloc(N * N * sizeof(int));
-	nokori = malloc(N * sizeof(int));
-
-	/* -- Temporary Container. L is line(column), R is raw(row). -- */ 
-	int * sortedL = malloc(N * sizeof(int));
-	int * sortedR = malloc(N * sizeof(int));
-	int indexL[] = {0,1,2,3,4,5};
-	int indexR[] = {0,1,2,3,4,5};
-	int reversed = false;
-
-	/* -- Initialize Variable -- */
-	sorted = malloc((N + 1) * sizeof(int));
-
-	input(s);
-	/* -- Search Variable(has Zero Value) and Log its position -- */
+void dump() {
+	int i = 0, j = 0;
 	for (i = 0; i < N; i++) {
 		for (j = 0; j < N; j++) {
-			if (s[i][j] == 0)  {
-				line[i]++;
-				raw[j]++;
-			}
-			else {
-				/* mark used numbers */
-				used[s[i][j] - 1] = true;
+			printf("%3d", s[i][j]);
+		}
+		puts("");
+	}
+}
+
+/* -- Variables -- */
+int unused[UNKNOWN]; /* Unused numbers */
+int used[UNKNOWN]; /* used flag of unsed numbers*/
+int *sorted; 
+int *pastIndex;
+
+int main() {
+	/* variables */
+	int col[N] = {}; /* number of variables in each cols */
+	int row[N] = {}; /* number of vairables in each rows */
+	int i = 0,j = 0; 
+	int unused_index = 0; /* index of unused array */
+
+	int colIndex[]={0,1,2,3,4,5}; /* index of position in unsorted col */
+	int rowIndex[]={0,1,2,3,4,5};
+	int used[N * N] = {};
+
+	int reversed = false; /* Flag is swapped col and row */
+
+	/* input */
+	input(s);
+
+
+	/* parse input */
+	for (i=0;i<N;i++) {
+		for (j=0;j<N;j++) {
+			if (s[i][j]==0) {
+				/* Vairable */
+				col[i]++;
+				row[j]++;
+			} else {
+				/* Value */
+				used[s[i][j]-1]=true; /* Set Used Flag */
 			}
 		}
 	}
 
-	for (i = 0; i < N * N; i++) {
-		if (! used[i]) {
-			/* collect unused values */
-			nokori[count++] = i + 1;
+	/* Find unused valued */
+	for(i=0;i<N*N;i++){
+		if(! used[i]) {
+			unused[unused_index++]=i+1;
 		}
 	}
 
-	memcpy(sortedL, line, N * sizeof(int));
-	memcpy(sortedR, raw, N * sizeof(int));
+	/* sort col and row, and keep their past index */
+	sort(col,colIndex);
+	sort(row,rowIndex);
 
-	sort(sortedL, indexL, N);
-	sort(sortedR, indexR, N);
-
-	if (comb(sortedL, N) > comb(sortedR, N)) {
+	if (col[0] > row[0]) {
 		reversed = true;
 		rotate();
-		index_ = indexR;
-		sorted = sortedR;
-	} else {
-		index_ = indexL;
-		sorted = sortedL;
 	}
+	pastIndex = colIndex;
+	sorted = col;
+	/*
+	if (comb(col) > comb(row)) {
+		reversed = true;
+		rotate();
+		pastIndex = rowIndex;
+		sorted = row;
+	}
+	else { 
+		pastIndex = colIndex;
+		sorted = col;
+	}
+	*/
 
-	solve(sorted[0], 0, 0);
+	/* solve */
+	solve(sorted[0],0,0);
 	if (reversed) {
 		rotate();
 	}
 
+	/* Output */
 	output(s);
-	
 }
 
-/* -- Function Impelementations */
-int comb(int sorted[], int len)
-{
-	int sum = 0;
-	int buf;
-	int unk = UNKNOWN;
-	int i, j;
+int solve(int unknown_count,int col,int row) {
+	int i = 0;
 
-	for (i = 0; i < len; i++) {
-			buf = 1;
-			for (j = 0; j < sorted[i]; j++) {
-				buf *= unk;
-				unk--;
-			}
-			sum += buf;
-	}
-
-	return sum;
-}
-
-
-/* -- Sort data1 and data2. data2 is sorted according to data1 -- */
-void sort(int data1[], int data2[], int len)
-{
-	int i, j;
-	int tmp, tmp2;
-	for (i = 0; i < len - 1; i++) {
-		for (j = 0; j < len - i - 1; j++) {
-			if (data1[j] > data1[j+1]) {
-				tmp = data1[j];
-				tmp2 = data2[j];
-
-				data1[j] = data1[j+1];
-				data1[j+1] =  tmp;
-				data2[j] = data2[j+1];
-				data2[j+1] = tmp2;
-			}
-		}
-	}
-}
-
-/* -- Solve -- */
-int solve(int unk, int n, int x) {
-	int i;
-	if (n == N) {
+	if (col == N) {
 		return isMahoJin();
 	}
-	if (unk == 0) {
-		return check(index_[n]) && solve(sorted[n+1], n+1, 0);
+	if (unknown_count == 0) {
+		return check(pastIndex[col]) && solve(sorted[col+1], col+1, 0);
 	}
-	while (s[index_[n]][x] != 0) {
-		x++;
+
+	/* search row pos of variable */
+	while (s[pastIndex[col]][row] != 0) {
+		row++;
 	}
-	for (i = 0; i < UNKNOWN; i++) {
+	for (i=0; i<UNKNOWN; i++) {
 		if (used[i]) {
 			continue;
 		}
 		used[i] = true;
-		s[index_[n]][x] = nokori[i];
-		if (solve(unk-1, n, x+1)) {
+		s[pastIndex[col]][row] = unused[i];
+		if (solve(unknown_count-1, col, row+1)) {
 			return true;
 		}
-		s[index_[n]][x] = 0;
+		s[pastIndex[col]][row] = 0;
 		used[i] = false;
 	}
-
 	return false;
 }
 
-/* -- Check value, sum of column -- */
-int check(int t) {
-	int sum=0;
-	int i = 0;
-	for(i=0;i<N;i++){
-		sum+=s[t][i];
+/* Check is correct col */
+int check(int col){
+	int sum=0, i = 0;
+	for (i=0; i<N; i++) {
+		sum+=s[col][i];
 	}
 	return sum==111;
 }
 
-/* -- Rotate MahoJin -- */
-void rotate() {
-		int i,j;
-		int newarray[N][N];
-		for(i=0;i<N;i++){
-			for(j=0;j<N;j++){
-				newarray[i][j]=s[j][i];
-				}
+/* Sort data1 and sort data2 in according to key of data1 */
+void sort(int data[],int data2[]) {
+	int i = 0, j = 0;
+	int tmp = 0;
+	for (i=0; i < N-1; i++) {
+		for(j=0; j < N-i-1; j++){
+			if (data[j] > data[j+1]) {
+				tmp = data[j];
+				data[j] = data[j+1];
+				data[j+1] = tmp;
+
+				tmp = data2[j];
+				data2[j] = data2[j+1];
+				data2[j+1] = tmp;
+			}
 		}
-		int(*s)[N] = newarray;
+	}
 }
 
-/* -- Check is MahoJin? -- */
-int isMahoJin() {
-	int sum1;
-	int sum2;
+/* Swap col and row */
+void rotate() {
 	int i = 0, j = 0;
+	int newarray[N][N] = {};
 	for(i=0;i<N;i++){
+		for(j=0;j<N;j++){
+			newarray[i][j]=s[j][i];
+		}
+	}
+	int(*s)[N] = newarray;
+}
+
+int comb(int sorted[]) {
+	int sum = 0, buf = 0;
+	int unk = UNKNOWN;
+	int i = 0, j = 0;
+
+	for (i = 0; i < N; i++) {
+		buf=1;
+		for (j=0 ; j < sorted[i]; j++) {
+			buf*=unk;
+			unk--;
+		}
+		sum+=buf;
+	}
+	return sum;
+}
+
+/* Check is s the mahojin */
+int isMahoJin(){
+	int sum1 = 0, sum2 = 0;
+	int i = 0, j = 0;
+	for (i=0; i < N; i++) {
 		sum1=0;
 		sum2=0;
-		for(j=0;j<N;j++) {
+		for(j=0;j<N;j++){
 			sum1+=s[i][j];
 			sum2+=s[j][i];
 		}
-		if(sum1!=111||sum2!=111) { 
+		if (sum1!=111 || sum2!=111) {
 			return false;
 		}
 	}
 	sum1=0;
 	sum2=0;
-	for(j=0;j<N;j++){
+	for (j=0; j < N; j++) {
 		sum1+=s[j][j];
 		sum2+=s[j][N-j-1];
 	}
-	if(sum1!=111||sum2!=111) {
+	if (sum1!=111 || sum2!=111) {
 		return false;
 	}
 	return true;
 }
-
 
