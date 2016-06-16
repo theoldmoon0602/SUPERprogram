@@ -72,13 +72,6 @@ int main() {
 	sort(col,colIndex);
 	sort(row,rowIndex);
 
-	if (col[0] > row[0]) {
-		reversed = true;
-		rotate();
-	}
-	pastIndex = colIndex;
-	sorted = col;
-	/*
 	if (comb(col) > comb(row)) {
 		reversed = true;
 		rotate();
@@ -89,7 +82,6 @@ int main() {
 		pastIndex = colIndex;
 		sorted = col;
 	}
-	*/
 
 	/* solve */
 	solve(sorted[0],0,0);
@@ -103,6 +95,9 @@ int main() {
 
 int solve(int unknown_count,int col,int row) {
 	int i = 0;
+
+	dump();
+	puts("");
 
 	if (col == N) {
 		return isMahoJin();
