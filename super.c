@@ -14,16 +14,6 @@ void rotate();
 int comb(int sorted[]);
 int isMahoJin();
 
-void dump() {
-	int i = 0, j = 0;
-	for (i = 0; i < N; i++) {
-		for (j = 0; j < N; j++) {
-			printf("%3d", s[i][j]);
-		}
-		puts("");
-	}
-}
-
 /* -- Variables -- */
 int unused[UNKNOWN]; /* Unused numbers */
 int used[UNKNOWN]; /* used flag of unsed numbers*/
@@ -32,20 +22,32 @@ int *pastIndex;
 
 int main() {
 	/* variables */
-	int col[N] = {}; /* number of variables in each cols */
-	int row[N] = {}; /* number of vairables in each rows */
-	int i = 0,j = 0; 
-	int unused_index = 0; /* index of unused array */
+	int col[N]; /* number of variables in each cols */
+	int row[N]; /* number of vairables in each rows */
+	int i,j; 
+	int unused_index; /* index of unused array */
 
-	int colIndex[]={0,1,2,3,4,5}; /* index of position in unsorted col */
-	int rowIndex[]={0,1,2,3,4,5};
-	int used[N * N] = {};
+	int colIndex[N]; /* index of position in unsorted col */
+	int rowIndex[N];
+	int used[N * N];
 
-	int reversed = false; /* Flag is swapped col and row */
+	int reversed; /* Flag is swapped col and row */
 
 	/* input */
 	input(s);
 
+	for (i = 0; i < N; i++) {
+		col[i] = 0;
+		row[i] = 0;
+		colIndex[i] = i;
+		rowIndex[i] = i;
+
+		for (j = 0; j < N; j++) {
+			used[i*N+j] = 0;
+		}
+	}
+	unused_index = 0;
+	reversed = false;
 
 	/* parse input */
 	for (i=0;i<N;i++) {
@@ -95,9 +97,6 @@ int main() {
 
 int solve(int unknown_count,int col,int row) {
 	int i = 0;
-
-	dump();
-	puts("");
 
 	if (col == N) {
 		return isMahoJin();
@@ -162,7 +161,11 @@ void rotate() {
 			newarray[i][j]=s[j][i];
 		}
 	}
-	int(*s)[N] = newarray;
+	for(i=0;i<N;i++){
+		for(j=0;j<N;j++){
+			s[i][j] = newarray[i][j];
+		}
+	}
 }
 
 int comb(int sorted[]) {
