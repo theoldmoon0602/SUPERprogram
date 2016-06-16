@@ -16,10 +16,10 @@ void rotate();
 int isMahoJin();
 
 /* -- Variable Declaration -- */
-int nokori[N];
+int *nokori; /* non used numbers */
 int *sorted;
 int *index_;
-int *used;
+int *used;   /* used numbers in mahojin */
 
 
 int main()
@@ -29,12 +29,13 @@ int main()
 	int raw[N] = {};
 	/* -- Coutner Variables */
 	int i, j;
-	int count = 0;
+	int count = 0; /* index of unused nums */
 	used = malloc(N * N * sizeof(int));
+	nokori = malloc(N * sizeof(int));
 
 	/* -- Temporary Container. L is line(column), R is raw(row). -- */ 
-	int * sortedL = malloc((N + 1) * sizeof(int));
-	int * sortedR = malloc((N + 1) * sizeof(int));
+	int * sortedL = malloc(N * sizeof(int));
+	int * sortedR = malloc(N * sizeof(int));
 	int indexL[] = {0,1,2,3,4,5};
 	int indexR[] = {0,1,2,3,4,5};
 	int reversed = false;
@@ -48,25 +49,24 @@ int main()
 		for (j = 0; j < N; j++) {
 			if (s[i][j] == 0)  {
 				line[i]++;
+				raw[j]++;
 			}
 			else {
-				/** Mark Variable Pos **/
+				/* mark used numbers */
 				used[s[i][j] - 1] = true;
-			}
-			if (s[j][i] == 0) {
-				raw[i]++;
 			}
 		}
 	}
 
 	for (i = 0; i < N * N; i++) {
 		if (! used[i]) {
+			/* collect unused values */
 			nokori[count++] = i + 1;
 		}
 	}
 
-	memcpy(sortedL, line, N+1);
-	memcpy(sortedR, raw, N+1);
+	memcpy(sortedL, line, N * sizeof(int));
+	memcpy(sortedR, raw, N * sizeof(int));
 
 	sort(sortedL, indexL, N);
 	sort(sortedR, indexR, N);
@@ -159,7 +159,7 @@ int solve(int unk, int n, int x) {
 	return false;
 }
 
-/* -- Check -- */
+/* -- Check value, sum of column -- */
 int check(int t) {
 	int sum=0;
 	int i = 0;
